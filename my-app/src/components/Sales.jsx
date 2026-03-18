@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import StatCard from "./StatCard.jsx";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "http://localhost:5001/api";
 
 export default function Sales() {
   const [products, setProducts] = useState([]);

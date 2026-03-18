@@ -22,6 +22,38 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/filter", async (req, res) => {
+  try {
+    const { from_date, to_date } = req.body;
+
+    if (!from_date || !to_date) {
+      return res.status(400).json({ message: "Missing dates" });
+    }
+
+    const query = `
+      SELECT s.*, p.product_name, p.price
+      FROM Sales s
+      JOIN Product p ON s.product_id = p.product_id
+      WHERE DATE(s.sale_date) BETWEEN ? AND ?
+      ORDER BY s.sale_date ASC
+    `;
+
+    db.all(query, [from_date, to_date], (err, rows) => {
+      if (err) {
+        console.error("DB ERROR:", err);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      return res.json(rows);
+    });
+
+  } catch (error) {
+    console.error("FILTER ERROR:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 // 🛒 CHECKOUT (Bulk Sale & Stock Update)
 router.post("/checkout", async (req, res) => {
   console.log("=== PROCESSING CHECKOUT ===");

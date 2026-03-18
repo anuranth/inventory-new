@@ -20,6 +20,12 @@ export default function Navbar() {
         >
           Sales
         </Link>
+         <Link
+          to="/report"
+          className={`hover:underline ${pathname === "/report" ? "font-bold underline" : ""}`}
+        >
+          Report
+        </Link>
       </div>
     </nav>
   );

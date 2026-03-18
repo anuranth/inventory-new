@@ -14,7 +14,7 @@ import StatCard from "./StatCard.jsx";
 
 const API_BASE = "http://localhost:5001/api";
 
-export default function Dashboard() {
+export default function Report() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,36 +83,7 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-    if (!form.product_name || !form.categoryId || !form.price) {
-      return alert("Please fill in required fields");
-    }
-
-    try {
-      const res = await fetch(`${API_BASE}/products`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          categoryId: Number(form.categoryId),
-          price: Number(form.price),
-          expiry_date: form.expiry_date ? form.expiry_date : null
-        }),
-      });
-
-      if (res.ok) {
-        setForm({ product_name: "", expiry_date: "", categoryId: "", price: "" });
-        fetchData();
-        // Ideally use a toast notification here instead of alert
-        alert("Product Added Successfully!");
-      } else {
-        alert("Failed to add product");
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
@@ -143,6 +114,36 @@ export default function Dashboard() {
     }
   };
 
+  const handleFilterSales = async () => {
+  if (!fromDate || !toDate) {
+    alert("Please select both From and To dates");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/sales/filter`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from_date: fromDate,
+        to_date: toDate
+      })
+    });
+
+    if (!res.ok) {
+      return alert("Error fetching filtered sales");
+    }
+
+    const data = await res.json();
+    setSales(data); // Update the UI with filtered results
+  } catch (error) {
+    console.error("Filter Error:", error);
+    alert("Something went wrong!");
+  }
+};
+
+
+
   // Filter products for search
   const filteredProducts = products.filter(p => 
     p.product_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -151,10 +152,11 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 pb-10">
       {/* Header Section */}
+      
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 pb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Overview of your inventory performance.</p>
+          <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Report</h1>
+          <p className="text-gray-500 mt-1">Inventory Report</p>
         </div>
         <div className="flex gap-3">
           <button 
@@ -168,41 +170,57 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard 
-          title="Total Products" 
-          value={stats.totalProducts} 
-          icon={Package} 
-          color="blue" 
-          trend="up"
-        />
-        <StatCard 
-          title="Low Stock Alerts" 
-          value={stats.lowStock} 
-          icon={AlertCircle} 
-          color="red" 
-        />
-        <StatCard 
-          title="Inventory Value" 
-          value={`₹${stats.totalValue.toLocaleString('en-IN')}`} 
-          icon={DollarSign} 
-          color="green" 
-        />
-      </div>
+ 
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
         {/* Left Column: Product List */}
-        <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-3 space-y--6">
+             <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center">
+              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Archive className="text-blue-600" size={20} /> Current Inventory
+              </h2>
+              </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             
             {/* Table Header / Search */}
             <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50">
-              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <Archive className="text-blue-600" size={20} /> Current Inventory
-              </h2>
-              <div className="relative">
+            <form className="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 " onSubmit={handleFilterSales} >
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">From</label>
+                <div className="relative">
+                  <input
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    type="date"
+                    placeholder="To Date"
+                                    //onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+                <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">To</label>
+                <div className="relative">
+                  <input
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    type="date"
+                    placeholder="From Date"
+                                   
+                    required
+                  />
+                </div>
+              </div>
+                <button
+                                onClick={() => handleFilterSales(p.product_id)}
+                                className="bg-blue-600 text-white p-1 rounded hover:bg-blue-700 transition shadow-sm"
+                                title="Filter"
+                              >
+                                <Search size={18} />
+                              </button>
+       
+            </form>
+                   <div className="relative">
                 <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
                 <input 
                   type="text" 
@@ -219,12 +237,13 @@ export default function Dashboard() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
                   <tr>
+                     <th className="p-4 w-[25%]">Sl No</th>
                     <th className="p-4 w-[25%]">Product</th>
                     <th className="p-4">Price</th>
                     <th className="p-4">Stock</th>
                     <th className="p-4">Value</th>
-                    <th className="p-4">Quick Add</th>
-                    <th className="p-4 text-right">Action</th>
+                   
+                   
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -238,13 +257,17 @@ export default function Dashboard() {
                       </td>
                     </tr>
                   ) : (
-                    filteredProducts.map((p) => {
+                    filteredProducts.map((p,index) => {
                       const totalStock = p.stocks?.reduce((sum, s) => sum + s.quantity, 0) || 0;
                       const stockValue = (p.price || 0) * totalStock;
                       const isLowStock = totalStock < 10;
 
                       return (
                         <tr key={p.product_id} className="hover:bg-blue-50/30 transition-colors group">
+                             <td className="p-4">
+                            <div className="font-medium text-gray-900">{index + 1}</div>
+            
+                          </td>
                           <td className="p-4">
                             <div className="font-medium text-gray-900">{p.product_name}</div>
                             <div className="text-xs text-gray-500 mt-0.5">
@@ -265,33 +288,8 @@ export default function Dashboard() {
                           <td className="p-4 text-gray-600">
                              ₹{stockValue.toLocaleString()}
                           </td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={stockInputs[p.product_id] || ""}
-                                onChange={(e) => handleStockInputChange(p.product_id, e.target.value)}
-                                className="w-16 border border-gray-300 rounded px-2 py-1 text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition"
-                                placeholder="Qty"
-                              />
-                              <button
-                                onClick={() => handleAddStock(p.product_id)}
-                                className="bg-blue-600 text-white p-1 rounded hover:bg-blue-700 transition shadow-sm"
-                                title="Add Stock"
-                              >
-                                <Plus size={14} />
-                              </button>
-                            </div>
-                          </td>
-                          <td className="p-4 text-right">
-                            <button
-                              onClick={() => handleDelete(p.product_id)}
-                              className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                              title="Delete Product"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </td>
+                        
+                         
                         </tr>
                       );
                     })
@@ -302,77 +300,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right Column: Add Product Form */}
-        <div className="xl:col-span-1">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 sticky top-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2 pb-4 border-b border-gray-100">
-              <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
-                <Plus size={20} /> 
-              </div>
-              Add New Product
-            </h2>
-            
-            <form onSubmit={handleAddProduct} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Product Name</label>
-                <input
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50 focus:bg-white"
-                  placeholder="e.g. Wireless Mouse"
-                  value={form.product_name}
-                  onChange={(e) => setForm({ ...form, product_name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Category</label>
-                <select
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
-                  value={form.categoryId}
-                  onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-                  required
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((c) => (
-                    <option key={c.category_id} value={c.category_id}>{c.category_name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Price (₹)</label>
-                    <div className="relative">
-                        <input
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                        type="number"
-                        placeholder="0.00"
-                        value={form.price}
-                        onChange={(e) => setForm({ ...form, price: e.target.value })}
-                        required
-                        />
-                    </div>
-                </div>
-                <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Expiry</label>
-                    <input
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                        type="date"
-                        value={form.expiry_date}
-                        onChange={(e) => setForm({ ...form, expiry_date: e.target.value })}
-                    />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 active:transform active:scale-95 transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2 mt-4"
-              >
-                <Plus size={18} /> Add to Inventory
-              </button>
-            </form>
-          </div>
-        </div>
+      
 
       </div>
     </div>

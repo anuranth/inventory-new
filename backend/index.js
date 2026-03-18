@@ -8,9 +8,10 @@ import productRoutes from "./routes/products.js";
 import salesRoutes from "./routes/sales.js";
 import stockRoutes from "./routes/stock.js";
 import categoryRoutes from "./routes/categories.js";
+import reportRoutes from "./routes/Report.js";
 
 const app = express();
-const port = 5000;
+const port = Number(process.env.PORT) || 5001;
 
 // Middleware
 app.use(cors());
@@ -28,6 +29,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/stock", stockRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/report", reportRoutes);
 
 // Start Server
 app.listen(port, () => {

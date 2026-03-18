@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Tag, Layers } from "lucide-react";
 
-const CATEGORY_API = "http://localhost:5000/api/categories";
+const CATEGORY_API = "http://localhost:5001/api/categories";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);

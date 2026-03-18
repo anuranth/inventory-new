@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
+  Moon,
   LayoutDashboard, 
   ShoppingCart, 
+  Sun,
   Tags, 
+  BrainCircuit,
   LogOut, 
   Menu, 
   X, 
   UserCircle 
 } from "lucide-react";
 
-export default function Sidebar({ role, user }) {
+export default function Sidebar({ role, user, theme, onToggleTheme }) {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
@@ -42,7 +45,7 @@ export default function Sidebar({ role, user }) {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-md text-gray-700"
+        className="theme-mobile-toggle md:hidden fixed top-4 right-4 z-50 p-2 bg-white rounded-lg shadow-md text-gray-700"
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
@@ -57,7 +60,7 @@ export default function Sidebar({ role, user }) {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed md:relative inset-y-0 left-0 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out z-40 flex flex-col
+        className={`theme-sidebar fixed md:relative inset-y-0 left-0 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out z-40 flex flex-col
         ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
@@ -76,13 +79,24 @@ export default function Sidebar({ role, user }) {
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <NavItem to="/" icon={LayoutDashboard} label="Dashboard" />
           <NavItem to="/sales" icon={ShoppingCart} label="Sales" />
+          <NavItem to="/ai-insights" icon={BrainCircuit} label="AI Insights" />
           {role === "admin" && (
             <NavItem to="/categories" icon={Tags} label="Categories" />
+          )}
+           {role === "admin" && (
+            <NavItem to="/report" icon={Tags} label="Report" />
           )}
         </nav>
 
         {/* User Profile & Logout */}
         <div className="p-4 border-t border-gray-100 bg-gray-50">
+          <button
+            onClick={onToggleTheme}
+            className="theme-toggle-button mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors"
+          >
+            {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+            {theme === "light" ? "Dark Mode" : "Light Mode"}
+          </button>
           <div className="flex items-center gap-3 mb-4 px-2">
             <div className="bg-blue-100 p-2 rounded-full text-blue-600">
               <UserCircle size={24} />
